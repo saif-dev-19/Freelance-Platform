@@ -17,8 +17,11 @@ inflection==0.5.1
 oauthlib==3.3.1
 packaging==25.0
 pillow==11.3.0
+psycopg2==2.9.10
 pycparser==2.22
 PyJWT==2.10.1
+python-decouple==3.8
+python-dotenv==1.1.1
 python3-openid==3.2.0
 pytz==2025.2
 PyYAML==6.0.2
@@ -30,3 +33,4 @@ sqlparse==0.5.3
 tzdata==2025.2
 uritemplate==4.2.0
 urllib3==2.5.0
+whitenoise==6.9.0

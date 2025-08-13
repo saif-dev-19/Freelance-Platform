@@ -1,0 +1,96 @@
+[
+  {
+    "model": "services.category",
+    "pk": 1,
+    "fields": {
+      "name": "Web Development",
+      "description": "Services related to creating and maintaining websites."
+    }
+  },
+  {
+    "model": "services.category",
+    "pk": 2,
+    "fields": {
+      "name": "Graphic Design",
+      "description": "Creative services for branding, logos, and visual content."
+    }
+  },
+  {
+    "model": "services.category",
+    "pk": 3,
+    "fields": {
+      "name": "Content Writing",
+      "description": "Professional writing services for blogs, websites, and marketing."
+    }
+  },
+  {
+    "model": "services.services",
+    "pk": 1,
+    "fields": {
+      "title": "Full-Stack Website Development",
+      "seller": 1,
+      "requirements": "Provide website design preferences, content, and domain details.",
+      "price": "500.00",
+      "category": 1,
+      "delivery_time": 14,
+      "created_at": "2025-08-01T12:00:00Z",
+      "updated_at": "2025-08-01T12:00:00Z"
+    }
+  },
+  {
+    "model": "services.services",
+    "pk": 2,
+    "fields": {
+      "title": "E-commerce Store Setup",
+      "seller": 2,
+      "requirements": "Provide product list, payment gateway details, and branding assets.",
+      "price": "750.00",
+      "category": 1,
+      "delivery_time": 21,
+      "created_at": "2025-08-02T10:15:00Z",
+      "updated_at": "2025-08-02T10:15:00Z"
+    }
+  },
+  {
+    "model": "services.services",
+    "pk": 3,
+    "fields": {
+      "title": "Custom Logo Design",
+      "seller": 1,
+      "requirements": "Provide brand name, color preferences, and any style inspirations.",
+      "price": "80.00",
+      "category": 2,
+      "delivery_time": 3,
+      "created_at": "2025-08-03T08:45:00Z",
+      "updated_at": "2025-08-03T08:45:00Z"
+    }
+  },
+  {
+    "model": "services.services",
+    "pk": 4,
+    "fields": {
+      "title": "Business Card Design",
+      "seller": 2,
+      "requirements": "Provide company name, contact details, and preferred design style.",
+      "price": "40.00",
+      "category": 2,
+      "delivery_time": 2,
+      "created_at": "2025-08-04T14:20:00Z",
+      "updated_at": "2025-08-04T14:20:00Z"
+    }
+  },
+  {
+    "model": "services.services",
+    "pk": 5,
+    "fields": {
+      "title": "SEO Blog Writing",
+      "seller": 1,
+      "requirements": "Provide topic, keywords, and target audience information.",
+      "price": "50.00",
+      "category": 3,
+      "delivery_time": 5,
+      "created_at": "2025-08-05T09:30:00Z",
+      "updated_at": "2025-08-05T09:30:00Z"
+    }
+  }
+]

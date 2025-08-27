@@ -86,7 +86,7 @@ class OrderViewSet(ModelViewSet):
 
 class BuyerOrderHistory(ModelViewSet):
     serializer_class = OrderSerializer
-    permission_classes = [customPermission.IsBuyer]
+    permission_classes = [customPermission.IsBuyer,IsAuthenticated]
 
     def get_queryset(self):
         return Order.objects.filter(buyer = self.request.user)

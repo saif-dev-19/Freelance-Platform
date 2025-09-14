@@ -10,10 +10,12 @@ from rest_framework.response import Response
 from services import permissions as customPermission
 from django.db.models import Sum
 from rest_framework import permissions
+from orders.permissions import OrderPermissons
 # Create your views here.
 
 class OrderViewSet(ModelViewSet):
-    http_method_names = ['get','post','delete','patch','head','options']
+    permission_classes = [OrderPermissons]
+    # http_method_names = ['get','post','delete','patch','head','options']
 
 
     # def perform_create(self, serializer):
@@ -32,22 +34,14 @@ class OrderViewSet(ModelViewSet):
     #         message = f"New Order palced on {order.service.title}"
     #     )
     
-    @action(detail=True, methods=['patch'], permission_classes =[customPermission.IsSeller,IsAdminUser])
-    def update_status(self,request,pk=None):
-        order = self.get_object()
-        serializer = OrderUpdateSerializer(order,data=request.data, partial = True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response({'status':f'Order Status updated to {request.data['status']}'})
+    # @action(detail=True, methods=['patch'], permission_classes =[customPermission.IsSeller,IsAdminUser])
+    # def update_status(self,request,pk=None):
+    #     order = self.get_object()
+    #     serializer = OrderUpdateSerializer(order,data=request.data, partial = True)
+    #     serializer.is_valid(raise_exception=True)
+    #     serializer.save()
+    #     return Response({'status':f'Order Status updated to {request.data['status']}'})
 
-
-    def get_permissions(self):
-        if self.action == 'update_status':
-            return [customPermission.OrderIsSeller()]
-        if self.action == 'destroy':
-            return [IsAdminUser()]
-        return [customPermission.IsBuyer()]
-        
 
     def get_serializer_class(self):
         if self.action == 'create':
@@ -99,16 +93,21 @@ class totalEarnpermission(permissions.BasePermission):
 
 class SellerTotalEarningsViewSet(ModelViewSet):
     serializer_class = SellerTotalEarningSerializer
-    permission_classes = [totalEarnpermission,IsAuthenticated]
+    permission_classes = [totalEarnpermission]
 
     def get_queryset(self):
-        return Order.objects.filter(service__seller = self.request.user,status = Order.COMPLETED)
+        return Order.objects.filter(
+            service__seller=self.request.user,
+            status=Order.COMPLETED
+        )
+
+
+    def list(self, request):
+        total = self.get_queryset().aggregate(total=Sum('total_price'))['total'] or 0
+        print(total)
+        serializer = self.get_serializer({'total_earnings': total})
+        return Response(serializer.data)
     
     # def get_serializer(self, *args, **kwargs):
     #     total_earnings = self.get_queryset().aaggregate(total = Sum('total_price'))['total'] or 0
     #     return {'total_earnings':total_earnings}
-
-    def list(self, request):
-        total = self.get_queryset().aggregate(total=Sum('total_price'))['total'] or 0 
-        serializer = SellerTotalEarningSerializer({'total_earnings': total})
-        return Response(serializer.data)

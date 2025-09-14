@@ -1,17 +1,24 @@
 from rest_framework import permissions
-
+from services.models import Services,ServiceImage
 
 class IsSeller(permissions.BasePermission):
-    def has_permission(self, request, view):
+    def has_permission(self, request,view):
         if request.method in permissions.SAFE_METHODS:
             return True
         return request.user.is_authenticated and request.user.role == 'Seller'
-    def has_object_permission(self, request, view, obj):
+    
+    def has_object_permission(self, request,view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
-        return obj.seller == request.user
+
+        if isinstance(obj, Services):
+            return obj.seller == request.user
+        
+        if isinstance(obj, ServiceImage):
+            return obj.service.seller == request.user
     
 class OrderIsSeller(permissions.BasePermission):
+
     def has_permission(self, request, view):
         if request.method in permissions.SAFE_METHODS:
             return True

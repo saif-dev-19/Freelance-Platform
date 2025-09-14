@@ -10,11 +10,13 @@ class Order(models.Model):
     PENDING = 'Pending'
     IN_PROGRESS = "In_progress"
     COMPLETED = "Completed"
+    CANCLED = "Canceled"
 
     ORDER_STATUS = [
         (PENDING,'Pending'),
         (IN_PROGRESS,'In_progress'),
-        (COMPLETED, 'Completed')
+        (COMPLETED, 'Completed'),
+        (CANCLED, 'Canceled'),
     ]
 
     id = models.UUIDField(primary_key=True,default=uuid4, editable= False)

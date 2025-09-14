@@ -62,7 +62,9 @@ class ServiceImageViewSet(ModelViewSet):
     permission_classes = [IsSeller]
 
     def get_queryset(self):
-        return ServiceImage.objects.filter(pk = self.kwargs.get('service_pk'))
+        service = Services.objects.get(pk=self.kwargs.get('service_pk'))
+        return ServiceImage.objects.filter(service=service)
+
     
     def perform_create(self, serializer):
         service = Services.objects.get(pk= self.kwargs.get('service_pk'))
@@ -70,6 +72,6 @@ class ServiceImageViewSet(ModelViewSet):
         if service.seller != self.request.user:
             raise ValidationError("You can't have permission to add image ")
 
-        serializer.save(service = service,seller = self.request.user)
+        serializer.save(service = service)
     
 

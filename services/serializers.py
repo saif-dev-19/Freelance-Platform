@@ -66,7 +66,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 class ServiceImageSerializer(serializers.ModelSerializer):
+    image = serializers.ImageField()
     class Meta:
         model = ServiceImage
-        fields = ['id','service','image']
-        read_only_fields = ['service']
+        fields = ['id','image']

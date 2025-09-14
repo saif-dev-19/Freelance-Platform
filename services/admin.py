@@ -1,6 +1,7 @@
 from django.contrib import admin
-from services.models import Services,Category,Review
+from services.models import Services,Category,Review,ServiceImage
 # Register your models here.
 admin.site.register(Services)
 admin.site.register(Category)
 admin.site.register(Review)
+admin.site.register(ServiceImage)

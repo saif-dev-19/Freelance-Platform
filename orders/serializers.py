@@ -46,7 +46,6 @@ class OrderSerializer(serializers.ModelSerializer):
         return obj.service.price
     
 class OrderUpdateSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Order
         fields = ['status']
@@ -62,12 +61,10 @@ class NotificationSerializer(serializers.ModelSerializer):
          user_id = self.context['request'].user
 
          return Notification.objects.create(user_id = user_id,**validated_data)
-    
-class SellerTotalEarningSerializer(serializers.ModelSerializer):
-    total_earnings = serializers.DecimalField(max_digits=10,decimal_places=2, read_only = True)
+
+
+class SellerTotalEarningSerializer(serializers.Serializer):
+    total_earnings = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     class Meta:
         model = Order
         fields = ['total_earnings']
-    
-    def get_total_earning(self,obj):
-        return self.context.get('total_earnings')

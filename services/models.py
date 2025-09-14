@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.core.validators import MaxValueValidator,MinValueValidator
 from services.validators import validate_file_size
+from cloudinary.models import CloudinaryField
 # Create your models here.
 
 class Category(models.Model):
@@ -39,6 +40,6 @@ class Review(models.Model):
     
 
 class ServiceImage(models.Model):
-    seller = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name='images')
     service = models.ForeignKey(Services,on_delete=models.CASCADE, related_name="images")
-    image = models.ImageField(upload_to= 'service/images/',validators=[validate_file_size]) 
+    image = CloudinaryField('image')
+    # image = models.ImageField(upload_to= 'service/images/',validators=[validate_file_size]) 

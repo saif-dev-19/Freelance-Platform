@@ -20,12 +20,11 @@ from services.filters import ServiceFilter
 
 
 class ServiceViewSet(ModelViewSet):
-    queryset = Services.objects.all()
     serializer_class =  ServiceSerializer
     filter_backends = [DjangoFilterBackend,SearchFilter,OrderingFilter]
     # filterset_class = ServiceFilter
     ordering_fields = ['price']
-    filterset_fields = ServiceFilter
+    filterset_class = ServiceFilter
     search_fields = ['name','category__name']
     pagination_class = DefaultPagination
     permission_classes = [IsSeller]
@@ -33,6 +32,8 @@ class ServiceViewSet(ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(seller = self.request.user)
 
+    def get_queryset(self):
+          return Services.objects.prefetch_related('images').all()
 
 class CategoryViewSet(ModelViewSet):
     queryset = Category.objects.annotate(service_count = Count('services')).all()

@@ -15,6 +15,7 @@ from rest_framework.permissions import IsAdminUser,AllowAny
 from services.permissions import IsSeller,IsAdminOrReadOnly,IsBuyer,ReviewAuthorOrReadOnly
 from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.exceptions import ValidationError
+from services.filters import ServiceFilter
 # Create your views here.
 
 
@@ -24,7 +25,7 @@ class ServiceViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend,SearchFilter,OrderingFilter]
     # filterset_class = ServiceFilter
     ordering_fields = ['price']
-    filterset_fields = ['category']
+    filterset_fields = ServiceFilter
     search_fields = ['name','category__name']
     pagination_class = DefaultPagination
     permission_classes = [IsSeller]

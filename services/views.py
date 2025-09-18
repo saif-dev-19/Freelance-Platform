@@ -9,7 +9,7 @@ from django.db.models import Count
 from rest_framework.viewsets import ModelViewSet
 from services.models import Review,ServiceImage
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.filters import OrderingFilter
+from rest_framework.filters import OrderingFilter,SearchFilter
 from services.pagination import DefaultPagination
 from rest_framework.permissions import IsAdminUser,AllowAny
 from services.permissions import IsSeller,IsAdminOrReadOnly,IsBuyer,ReviewAuthorOrReadOnly
@@ -21,10 +21,11 @@ from rest_framework.exceptions import ValidationError
 class ServiceViewSet(ModelViewSet):
     queryset = Services.objects.all()
     serializer_class =  ServiceSerializer
-    filter_backends = [DjangoFilterBackend,OrderingFilter]
+    filter_backends = [DjangoFilterBackend,SearchFilter,OrderingFilter]
     # filterset_class = ServiceFilter
     ordering_fields = ['price']
     filterset_fields = ['category']
+    search_fields = ['name','category__name']
     pagination_class = DefaultPagination
     permission_classes = [IsSeller]
 

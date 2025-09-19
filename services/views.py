@@ -25,7 +25,7 @@ class ServiceViewSet(ModelViewSet):
     # filterset_class = ServiceFilter
     ordering_fields = ['price']
     filterset_class = ServiceFilter
-    search_fields = ['name','category__name']
+    search_fields = ['title','category__name']
     pagination_class = DefaultPagination
     permission_classes = [IsSeller]
 

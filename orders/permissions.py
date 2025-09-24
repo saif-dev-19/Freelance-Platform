@@ -9,6 +9,8 @@ class OrderPermissons(permissions.BasePermission):
             return False
 
         if user.is_superuser or user.is_staff:
+            if request.method == 'POST':
+                return False
             return True
 
         if request.method == 'POST' and getattr(user, 'role', None) == 'Buyer':

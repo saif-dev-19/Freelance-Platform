@@ -2,6 +2,7 @@ from rest_framework import serializers
 from orders.models import Order,Notification
 from services.serializers import SimpleUserSerializer
 from services.models import Services
+from rest_framework.exceptions import PermissionDenied
 
 
 
@@ -11,12 +12,15 @@ class SimpleServiceSerializer(serializers.ModelSerializer):
         fields = ['id','title','seller','price','delivery_time']
 
 
-class CreateOrderSerlizer(serializers.ModelSerializer):
+class CreateOrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = ['service','requirements',]
     
     def create(self, validated_data):
+        user = self.context['request'].user
+        if user.role != 'Buyer':
+            raise PermissionDenied("Only Buyers can place orders")
         try:
             buyer_id = self.context.get('buyer_id')
             service= validated_data['service']
@@ -61,6 +65,9 @@ class NotificationSerializer(serializers.ModelSerializer):
          user_id = self.context['request'].user
 
          return Notification.objects.create(user_id = user_id,**validated_data)
+
+class EmptySerializer(serializers.Serializer):
+    pass
 
 
 class SellerTotalEarningSerializer(serializers.Serializer):

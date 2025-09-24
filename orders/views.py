@@ -1,9 +1,10 @@
 from django.shortcuts import render
-from orders.serializers import OrderSerializer,CreateOrderSerlizer,OrderUpdateSerializer,NotificationSerializer,SellerTotalEarningSerializer
+from orders.serializers import OrderSerializer,OrderUpdateSerializer,NotificationSerializer,SellerTotalEarningSerializer,EmptySerializer,CreateOrderSerializer
 from orders.models import Order,Notification
 from rest_framework.viewsets import ModelViewSet,ReadOnlyModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import IsAdminUser,AllowAny
+from rest_framework.exceptions import PermissionDenied
 from services import permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -11,42 +12,46 @@ from services import permissions as customPermission
 from django.db.models import Sum
 from rest_framework import permissions
 from orders.permissions import OrderPermissons
+from orders.services import OrderServices
 # Create your views here.
 
 class OrderViewSet(ModelViewSet):
     permission_classes = [OrderPermissons]
-    # http_method_names = ['get','post','delete','patch','head','options']
+    http_method_names = ['get','post','delete','patch','head','options']
 
 
-    # def perform_create(self, serializer):
-    #     order = serializer.save()
+    def perform_create(self, serializer):
+        if self.request.user.role != 'Buyer':
+            raise PermissionDenied("Only Buyers can place orders")
+        serializer.save(buyer_id=self.request.user.id)
 
-    #     Notification.objects.create(
-    #         user = order.service.seller,
-    #         message = f"New Order palced on {order.title}"
-    #     )
+    @action(detail=True, methods=['patch'], permission_classes =[customPermission.IsSeller,IsAdminUser])
+    def update_status(self,request,pk=None):
+        order = self.get_object()
+        serializer = OrderUpdateSerializer(order,data=request.data, partial = True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({'status':f'Order Status updated to {request.data['status']}'})
     
-    # def perform_update(self, serializer):
-    #     order = serializer.save()
-    #     if Order.status == 'Comleted':
-    #         Notification.objects.create(
-    #         user = order.buyer,
-    #         message = f"New Order palced on {order.service.title}"
-    #     )
+    @action(detail=True, methods=['post'], permission_classes =[IsAuthenticated])
+    def cancel(self,request,pk=None): #cancel action er maddome order cancel kora jabe post method e
+        order = self.get_object()
+        OrderServices.cancel_order(order = order, user = request.user)
+        return Response({'status':'Order Canceled'})
+
+    def get_permissions(self):
+        if self.action in ['update_status','destroy']:
+            return [IsAdminUser()]
+        if self.action == 'cancel':
+            return [IsAuthenticated()] 
+        return [IsAuthenticated()]
     
-    # @action(detail=True, methods=['patch'], permission_classes =[customPermission.IsSeller,IsAdminUser])
-    # def update_status(self,request,pk=None):
-    #     order = self.get_object()
-    #     serializer = OrderUpdateSerializer(order,data=request.data, partial = True)
-    #     serializer.is_valid(raise_exception=True)
-    #     serializer.save()
-    #     return Response({'status':f'Order Status updated to {request.data['status']}'})
-
-
     def get_serializer_class(self):
-        if self.action == 'create':
-            return CreateOrderSerlizer
-        elif self.action == 'update_status':
+        if self.action == 'cancel':
+            return EmptySerializer
+        if self.request.method == 'POST':
+            return CreateOrderSerializer
+        if self.request.method == 'PATCH':
             return OrderUpdateSerializer
         return OrderSerializer
     
@@ -77,6 +82,8 @@ class OrderViewSet(ModelViewSet):
 #     def get_serializer_context(self):
 #         return {'user_id':self.request.user.id}
     
+
+
 
 class BuyerOrderHistory(ModelViewSet):
     serializer_class = OrderSerializer

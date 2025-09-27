@@ -10,7 +10,7 @@ class OrderServices:
             order.save()
             return order
         
-        if order.user != user:
+        if order.buyer != user:
             raise PermissionDenied({'detail':"You can only cancel your now order"})
         
         if order.status == Order.DELIVERED:

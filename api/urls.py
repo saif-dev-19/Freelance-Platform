@@ -3,6 +3,7 @@ from rest_framework.routers import DefaultRouter
 from services import views
 from orders import views as orderview
 from rest_framework_nested import routers
+from orders.views import initiate_payment
 
 router = routers.DefaultRouter()
 router.register("services",views.ServiceViewSet,basename="services")
@@ -24,4 +25,5 @@ urlpatterns = [
     path('',include(service_router.urls)),
     path('auth/', include('djoser.urls')),
     path('auth/', include('djoser.urls.jwt')),
+    path("payment/initiate/", initiate_payment, name="initiate-payment")
 ]

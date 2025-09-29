@@ -17,6 +17,7 @@ from rest_framework.decorators import api_view
 from sslcommerz_lib import SSLCOMMERZ 
 from rest_framework import status
 from django.shortcuts import redirect
+from django.http import HttpResponseRedirect
 # Create your views here.
 
 class OrderViewSet(ModelViewSet):
@@ -169,6 +170,6 @@ def payment_success(request):
     print("Inside success")
     order_id = request.data.get("tran_id").split('_')[1]
     order = Order.objects.get(id=order_id)
-    order.status = "Ready To Ship"
+    order.status = "In_progress"
     order.save()
-    return redirect("http://localhost:5173/dashboard/orders/")
+    return HttpResponseRedirect("http://localhost:5173/dashboard/orders/")

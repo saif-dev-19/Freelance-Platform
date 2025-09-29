@@ -16,6 +16,7 @@ from orders.services import OrderServices
 from rest_framework.decorators import api_view
 from sslcommerz_lib import SSLCOMMERZ 
 from rest_framework import status
+from django.shortcuts import redirect
 # Create your views here.
 
 class OrderViewSet(ModelViewSet):
@@ -162,3 +163,12 @@ def initiate_payment(request):
     if response.get("status") == "SUCCESS":
         return Response({"payment_url": response['GatewayPageURL']})
     return Response({"error":"payment initiation failed"},status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+def payment_success(request):
+    print("Inside success")
+    order_id = request.data.get("tran_id").split('_')[1]
+    order = Order.objects.get(id=order_id)
+    order.status = "Ready To Ship"
+    order.save()
+    return redirect("http://localhost:5173/dashboard/orders/")

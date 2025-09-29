@@ -175,6 +175,9 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 
+BACKEND_URL = config("BACKEND_URL")
+FRONTEND_URL = config("FRONTEND_URL")
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 

@@ -18,6 +18,7 @@ from sslcommerz_lib import SSLCOMMERZ
 from rest_framework import status
 from django.shortcuts import redirect
 from django.http import HttpResponseRedirect
+from django.conf import settings as django_settings
 # Create your views here.
 
 class OrderViewSet(ModelViewSet):
@@ -141,9 +142,9 @@ def initiate_payment(request):
     post_body['total_amount'] = amount
     post_body['currency'] = "BDT"
     post_body['tran_id'] = f"txn_{order_id}"
-    post_body['success_url'] = "http://localhost:5173/dashboard/payment/success/"
-    post_body['fail_url'] = "http://localhost:5173/dashboard/payment/fail/"
-    post_body['cancel_url'] = "http://localhost:5173/dashboard/orders/"
+    post_body['success_url'] = f"{django_settings.BACKEND_URL}/api/payment/success/"
+    post_body['fail_url'] = f"{django_settings.BACKEND_URL}/api/payment/fail/"
+    post_body['cancel_url'] = f"{django_settings.BACKEND_URL}/api/dashboard/orders/"
     post_body['emi_option'] = 0
     post_body['cus_name'] = f"{user.first_name} {user.last_name}"
     post_body['cus_email'] = f"{user.email}"
@@ -172,4 +173,12 @@ def payment_success(request):
     order = Order.objects.get(id=order_id)
     order.status = "In_progress"
     order.save()
-    return HttpResponseRedirect("http://localhost:5173/dashboard/orders/")
+    return HttpResponseRedirect(f"{django_settings.FRONTEND_URL}/dashboard/orders/")
+
+@api_view(['POST'])
+def payment_cancel(request):
+    return HttpResponseRedirect(f"{django_settings.FRONTEND_URL}/dashboard/orders/")
+
+@api_view(['POST'])
+def payment_fail(request):
+    return HttpResponseRedirect(f"{django_settings.FRONTEND_URL}/dashboard/orders/")

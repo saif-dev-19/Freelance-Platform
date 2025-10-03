@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from services import views
 from orders import views as orderview
 from rest_framework_nested import routers
-from orders.views import initiate_payment,payment_success,payment_fail,payment_cancel
+from orders.views import initiate_payment,payment_success,payment_fail,payment_cancel,HasOrderedService
 
 router = routers.DefaultRouter()
 router.register("services",views.ServiceViewSet,basename="services")
@@ -29,4 +29,5 @@ urlpatterns = [
     path("payment/success/", payment_success, name="payment-success"),
     path("payment/fail/", payment_fail, name="payment-fail"),
     path("payment/cancel/", payment_cancel, name="payment-cancel"),
+    path("orders/has-ordered/<int:service_id>/",HasOrderedService.as_view())
 ]

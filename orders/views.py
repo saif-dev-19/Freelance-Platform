@@ -19,6 +19,7 @@ from rest_framework import status
 from django.shortcuts import redirect
 from django.http import HttpResponseRedirect
 from django.conf import settings as django_settings
+from rest_framework.views import APIView 
 # Create your views here.
 
 class OrderViewSet(ModelViewSet):
@@ -129,6 +130,19 @@ class SellerTotalEarningsViewSet(ModelViewSet):
     #     return {'total_earnings':total_earnings}
 
 
+class HasOrderedService(APIView):
+    permission_classes=[IsAuthenticated]
+
+    def get(self,request,service_id):
+        user = request.user
+        has_ordered = Order.objects.filter(
+            service_id = service_id,
+            buyer = user,
+            status = "Completed"
+        ).exists()
+        return Response({"has_orderes":has_ordered})
+
+
 
 @api_view(["POST"])
 def initiate_payment(request):
@@ -182,3 +196,6 @@ def payment_cancel(request):
 @api_view(['POST'])
 def payment_fail(request):
     return HttpResponseRedirect(f"{django_settings.FRONTEND_URL}/dashboard/orders/")
+
+
+

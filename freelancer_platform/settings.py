@@ -91,7 +91,7 @@ CORS_ALLOWED_ORIGINS = [
 
 
 WSGI_APPLICATION = 'freelancer_platform.wsgi.app'
-
+  
 INTERNAL_IPS = [
     # ...
     "127.0.0.1",

@@ -11,7 +11,7 @@ from services.models import Review,ServiceImage
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter,SearchFilter
 from services.pagination import DefaultPagination
-from rest_framework.permissions import IsAdminUser,AllowAny
+from rest_framework.permissions import IsAuthenticated
 from services.permissions import IsSeller,IsAdminOrReadOnly,IsBuyer,ReviewAuthorOrReadOnly
 from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.exceptions import ValidationError
@@ -77,4 +77,10 @@ class ServiceImageViewSet(ModelViewSet):
 
         serializer.save(service = service)
     
+class BuyerReviews(ModelViewSet):
+    serializer_class = ReviewSerializer
+    permission_classes = [IsBuyer,IsAuthenticated]
+
+    def get_queryset(self):
+        return Review.objects.filter(buyer = self.request.user)
 

@@ -48,6 +48,7 @@ class OrderSerializer(serializers.ModelSerializer):
     
     def get_total_price(self,obj):
         return obj.service.price
+   
     
 class OrderUpdateSerializer(serializers.ModelSerializer):
     class Meta:

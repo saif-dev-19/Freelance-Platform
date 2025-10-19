@@ -70,3 +70,17 @@ class ServiceImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ServiceImage
         fields = ['id','image']
+
+
+class SellerService(serializers.ModelSerializer):
+    images = ServiceImageSerializer(many = True, read_only = True)
+    class Meta:
+        model = Services
+        fields = ['id','title','images','price','requirements','delivery_time','seller','category']
+        read_only_fields = ['seller']
+
+    def validate_price(self,price):
+        if price < 0:
+            raise serializers.ValidationError("Price could not be negative")
+        else:
+            return price

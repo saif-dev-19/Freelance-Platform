@@ -12,7 +12,8 @@ router.register("orders",orderview.OrderViewSet, basename= "orders")
 # router.register('notifications',order.NotificationViewSet, basename="notifications")
 router.register('buyer-order',orderview.BuyerOrderHistory, basename='buyer-order')
 router.register('seller-earnings',orderview.SellerTotalEarningsViewSet, basename="seller-earnings")
-router.register('buyer-reviews',views.BuyerReviews, basename="buyer-reviews")
+router.register('buyer-reviews',views.BuyerReviews, basename="buyer-reviews"),
+router.register('seller-services',views.SellerService,basename='seller-services')
 
 
 service_router = routers.NestedDefaultRouter(router, 'services',lookup = 'service')

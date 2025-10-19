@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from django.shortcuts import get_object_or_404
 from services.models import Services,Category
-from services.serializers import ServiceSerializer,CategorySerializer,ReviewSerializer,ServiceImageSerializer
+from services.serializers import ServiceSerializer,CategorySerializer,ReviewSerializer,ServiceImageSerializer,SellerService
 from django.db.models import Count
 from rest_framework.viewsets import ModelViewSet
 from services.models import Review,ServiceImage
@@ -32,8 +32,7 @@ class ServiceViewSet(ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(seller = self.request.user)
 
-    def get_queryset(self):
-          return Services.objects.prefetch_related('images').all()
+    def get_queryset(self): return Services.objects.prefetch_related('images').all()
 
 class CategoryViewSet(ModelViewSet):
     queryset = Category.objects.annotate(service_count = Count('services')).all()
@@ -84,3 +83,9 @@ class BuyerReviews(ModelViewSet):
     def get_queryset(self):
         return Review.objects.filter(buyer = self.request.user)
 
+class SellerService(ModelViewSet):
+    serializer_class = SellerService
+    permission_classes =[IsSeller,IsAuthenticated]
+
+    def get_queryset(self): 
+        return Services.objects.prefetch_related('images').filter(seller = self.request.user)

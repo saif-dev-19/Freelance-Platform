@@ -43,3 +43,6 @@ class ServiceImage(models.Model):
     service = models.ForeignKey(Services,on_delete=models.CASCADE, related_name="images")
     image = CloudinaryField('image')
     # image = models.ImageField(upload_to= 'service/images/',validators=[validate_file_size]) 
+
+    def __str__(self):
+        return f"service {self.service} and id {self.id}"

@@ -16,8 +16,25 @@ from services.permissions import IsSeller,IsAdminOrReadOnly,IsBuyer,ReviewAuthor
 from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.exceptions import ValidationError
 from services.filters import ServiceFilter
-# Create your views here.
+from rest_framework.permissions import IsAdminUser
+from rest_framework import permissions
 
+
+# Create your views here.
+class IsSellerOrAdmin(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        return (
+            request.user.is_authenticated and 
+            (request.user.role == "Seller" or request.user.is_staff)
+        )
+    
+    def has_object_permission(self, request, view, obj):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        
+        return obj.seller == request.user or request.user.is_staff
 
 class ServiceViewSet(ModelViewSet):
     serializer_class =  ServiceSerializer
@@ -27,12 +44,12 @@ class ServiceViewSet(ModelViewSet):
     filterset_class = ServiceFilter
     search_fields = ['title','category__name']
     pagination_class = DefaultPagination
-    permission_classes = [IsSeller]
+    permission_classes = [IsSellerOrAdmin]
 
     def perform_create(self, serializer):
         serializer.save(seller = self.request.user)
 
-    def get_queryset(self): return Services.objects.prefetch_related('images').all()
+    def get_queryset(self): return Services.objects.select_related("seller").select_related('category').prefetch_related('images').all()
 
 class CategoryViewSet(ModelViewSet):
     queryset = Category.objects.annotate(service_count = Count('services')).all()

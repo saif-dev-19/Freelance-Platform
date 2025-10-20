@@ -199,3 +199,33 @@ def payment_fail(request):
 
 
 
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def seller_recent_orders(request):
+    seller = request.user
+
+    orders = (
+        Order.objects.filter(service__seller=seller)
+        .select_related('buyer', 'service')
+        .order_by('-created_at')[:5]
+    )
+
+    data = [
+        {
+            "id": f"#ORD-{order.id}",
+            "buyer": order.buyer.get_full_name() or order.buyer.email,
+            "service": order.service.title,
+            "amount": f"${order.total_price}",
+            "status": order.status,
+            "time": f"{order.created_at}"
+        }
+        for order in orders
+    ]
+
+    return Response(data)

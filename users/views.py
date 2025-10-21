@@ -16,7 +16,6 @@ from .serializers import UserSerializer
 User = get_user_model()
 
 @api_view(['GET'])
-@permission_classes([IsAdminUser])
 def admin_dashboard_summary(request):
 
     total_users = User.objects.count()

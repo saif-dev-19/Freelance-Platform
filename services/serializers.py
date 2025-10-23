@@ -54,7 +54,7 @@ class ServiceSerializer(serializers.ModelSerializer):
         instance.requirements = validated_data.get('requirements', instance.requirements)
         instance.price = validated_data.get('price', instance.price)
         instance.delivery_time = validated_data.get('delivery_time', instance.delivery_time)
-        instance.category = validated_data.get('category', instance.category)
+        instance.category = validated_data.get('category_id', instance.category)
         instance.save()
 
         for image in new_images:

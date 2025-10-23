@@ -15,7 +15,7 @@ router.register("orders",orderview.OrderViewSet, basename= "orders")
 router.register('buyer-order',orderview.BuyerOrderHistory, basename='buyer-order')
 router.register('seller-earnings',orderview.SellerTotalEarningsViewSet, basename="seller-earnings")
 router.register('buyer-reviews',views.BuyerReviews, basename="buyer-reviews"),
-router.register('seller-services',views.SellerService,basename='seller-services'),
+router.register('seller-services',views.SellerServiceViewSet,basename='seller-services'),
 router.register('users',UserViewSet,basename="users")
 
 

@@ -99,10 +99,21 @@ class BuyerReviews(ModelViewSet):
 
     def get_queryset(self):
         return Review.objects.filter(buyer = self.request.user)
+    
+    
+class SellerServiceViewSet(ModelViewSet):
+    serializer_class = ServiceSerializer
+    permission_classes = [IsAuthenticated, IsSeller]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class = ServiceFilter
+    pagination_class = DefaultPagination
+    search_fields = ['title', 'category__name']
+    ordering_fields = ['price', 'delivery_time']
 
-class SellerService(ModelViewSet):
-    serializer_class = SellerService
-    permission_classes =[IsSeller,IsAuthenticated]
-
-    def get_queryset(self): 
-        return Services.objects.prefetch_related('images').filter(seller = self.request.user)
+    def get_queryset(self):
+        return (
+            Services.objects
+            .prefetch_related('images')
+            .select_related('category')
+            .filter(seller=self.request.user)
+        )

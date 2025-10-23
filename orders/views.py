@@ -74,11 +74,11 @@ class OrderViewSet(ModelViewSet):
             return Order.objects.none()
 
         if self.request.user.is_staff:
-            return Order.objects.select_related('service').all()
+            return Order.objects.select_related('service__seller').all()
         if self.request.user.role == 'Seller':
             return Order.objects.select_related('service').filter(service__seller = self.request.user)
         if self.request.user.role == 'Buyer':
-            return Order.objects.select_related('service').filter(buyer = self.request.user)
+            return Order.objects.select_related('service__seller').filter(buyer = self.request.user)
 
 
 

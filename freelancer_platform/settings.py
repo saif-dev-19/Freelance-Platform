@@ -85,6 +85,7 @@ TEMPLATES = [
 
 
 CORS_ALLOWED_ORIGINS = [
+    "https://freelance-platform-client.vercel.app",
     "https://freelance-platform-client-y5eg.vercel.app",
     "http://localhost:5173"
 ]

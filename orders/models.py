@@ -9,12 +9,14 @@ from users.models import User
 class Order(models.Model):
     PENDING = 'Pending'
     IN_PROGRESS = "In_progress"
+    DELIVERED = "Delivered"
     COMPLETED = "Completed"
     CANCELED = "Canceled"
 
     ORDER_STATUS = [
         (PENDING,'Pending'),
         (IN_PROGRESS,'In_progress'),
+        (DELIVERED, 'Delivered'),
         (COMPLETED, 'Completed'),
         (CANCELED, 'Canceled'),
     ]
@@ -25,6 +27,9 @@ class Order(models.Model):
     status = models.CharField(max_length=15,choices=ORDER_STATUS, default=PENDING)
     total_price = models.DecimalField(max_digits=10,decimal_places=2)
     requirements = models.TextField(blank=True,null=True)
+    delivery_message = models.TextField(blank=True)
+    delivery_url = models.URLField(blank=True)
+    revision_feedback = models.TextField(blank=True)
     created_at = models.DateField(auto_now_add=True)
 
     

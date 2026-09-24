@@ -1,15 +1,17 @@
 from rest_framework import serializers
 from orders.models import Order,Notification
-from services.serializers import SimpleUserSerializer
+from services.serializers import ServiceImageSerializer, SimpleUserSerializer
 from services.models import Services
 from rest_framework.exceptions import PermissionDenied
 
 
 
 class SimpleServiceSerializer(serializers.ModelSerializer):
+    images = ServiceImageSerializer(many=True, read_only=True)
+
     class Meta:
         model =Services
-        fields = ['id','title','seller','price','delivery_time']
+        fields = ['id','title','images','seller','price','delivery_time']
 
 
 class CreateOrderSerializer(serializers.ModelSerializer):
@@ -43,17 +45,20 @@ class OrderSerializer(serializers.ModelSerializer):
     )
     class Meta:
         model = Order
-        fields = ['id','buyer','service','status','total_price','requirements','created_at']
+        fields = ['id','buyer','service','status','total_price','requirements','delivery_message','delivery_url','revision_feedback','created_at']
         read_only_fields = ['status','requirements']
     
     def get_total_price(self,obj):
         return obj.service.price
    
     
-class OrderUpdateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Order
-        fields = ['status']
+class DeliverySerializer(serializers.Serializer):
+    message = serializers.CharField()
+    url = serializers.URLField(required=False, allow_blank=True)
+
+
+class RevisionSerializer(serializers.Serializer):
+    feedback = serializers.CharField()
 
 
 class NotificationSerializer(serializers.ModelSerializer):

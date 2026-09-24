@@ -3,3 +3,5 @@ db.sqlite3
 .freelance_env
 .env
 db_pass.txt
+venv/
+/venv/

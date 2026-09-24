@@ -28,11 +28,13 @@ class ServiceSerializer(serializers.ModelSerializer):
     )
     category = CategorySerializer(read_only=True)
     category_id = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all(),write_only = True)
+    rating = serializers.FloatField(read_only=True, allow_null=True)
+    reviews = serializers.IntegerField(source='review_count', read_only=True)
 
     seller = UserSerializer(read_only = True)
     class Meta:
         model = Services
-        fields = ['id','title','images','price','requirements','delivery_time','seller','category','new_images','category_id']
+        fields = ['id','title','images','price','requirements','delivery_time','seller','category','new_images','category_id','rating','reviews']
         read_only_fields = ['seller']
 
     def validate_price(self,price):
@@ -43,7 +45,8 @@ class ServiceSerializer(serializers.ModelSerializer):
         
     def create(self, validated_data):
         new_images = validated_data.pop('new_images', [])
-        service = Services.objects.create(**validated_data)
+        category = validated_data.pop('category_id')
+        service = Services.objects.create(category=category, **validated_data)
         for image in new_images:
             ServiceImage.objects.create(service=service, image=image)
         return service

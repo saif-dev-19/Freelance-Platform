@@ -13,8 +13,8 @@ class OrderServices:
         if order.buyer != user:
             raise PermissionDenied({'detail':"You can only cancel your now order"})
         
-        if order.status == Order.COMPLETED:
-            raise ValidationError({'deatil':"You can not cancel an order"})
+        if order.status in (Order.DELIVERED, Order.COMPLETED):
+            raise ValidationError({'detail':"Delivered orders must be accepted or sent for revision; completed orders cannot be canceled."})
         
         order.status = Order.CANCELED
         order.save()

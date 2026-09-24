@@ -5,7 +5,7 @@ from rest_framework.decorators import api_view
 from django.shortcuts import get_object_or_404
 from services.models import Services,Category
 from services.serializers import ServiceSerializer,CategorySerializer,ReviewSerializer,ServiceImageSerializer,SellerService
-from django.db.models import Count
+from django.db.models import Avg, Count
 from rest_framework.viewsets import ModelViewSet
 from services.models import Review,ServiceImage
 from django_filters.rest_framework import DjangoFilterBackend
@@ -27,14 +27,16 @@ class IsSellerOrAdmin(permissions.BasePermission):
             return True
         return (
             request.user.is_authenticated and 
-            (request.user.role == "Seller" or request.user.is_staff)
+            (request.user.role == "Seller" or (request.user.is_staff and request.user.role != "Seller"))
         )
     
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
         
-        return obj.seller == request.user or request.user.is_staff
+        return obj.seller == request.user or (
+            request.user.is_staff and request.user.role != "Seller"
+        )
 
 class ServiceViewSet(ModelViewSet):
     serializer_class =  ServiceSerializer
@@ -49,7 +51,14 @@ class ServiceViewSet(ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(seller = self.request.user)
 
-    def get_queryset(self): return Services.objects.select_related("seller").select_related('category').prefetch_related('images').all()
+    def get_queryset(self):
+        return (
+            Services.objects
+            .select_related("seller", "category")
+            .prefetch_related("images")
+            .annotate(rating=Avg('reviews__rating'), review_count=Count('reviews', distinct=True))
+            .order_by('-created_at', '-id')
+        )
 
 class CategoryViewSet(ModelViewSet):
     queryset = Category.objects.annotate(service_count = Count('services')).all()
@@ -72,7 +81,7 @@ class ReviewViewSet(ModelViewSet):
     # def get_serializer_context(self):
     #     return {'service_id':self.kwargs.get('service_pk')} 
     def get_queryset(self):
-        return Review.objects.filter(service_id = self.kwargs.get('service_pk'))
+        return Review.objects.select_related('buyer').filter(service_id=self.kwargs.get('service_pk'))
     
 
 
@@ -81,8 +90,7 @@ class ServiceImageViewSet(ModelViewSet):
     permission_classes = [IsSeller]
 
     def get_queryset(self):
-        service = Services.objects.get(pk=self.kwargs.get('service_pk'))
-        return ServiceImage.objects.filter(service=service)
+        return ServiceImage.objects.filter(service_id=self.kwargs.get('service_pk'))
 
     
     def perform_create(self, serializer):
@@ -98,7 +106,7 @@ class BuyerReviews(ModelViewSet):
     permission_classes = [IsBuyer,IsAuthenticated]
 
     def get_queryset(self):
-        return Review.objects.filter(buyer = self.request.user)
+        return Review.objects.select_related('buyer').filter(buyer=self.request.user)
     
     
 class SellerServiceViewSet(ModelViewSet):
@@ -114,6 +122,8 @@ class SellerServiceViewSet(ModelViewSet):
         return (
             Services.objects
             .prefetch_related('images')
-            .select_related('category')
+            .select_related('seller', 'category')
+            .annotate(rating=Avg('reviews__rating'), review_count=Count('reviews', distinct=True))
             .filter(seller=self.request.user)
+            .order_by('-created_at', '-id')
         )

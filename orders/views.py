@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from orders.serializers import OrderSerializer,OrderUpdateSerializer,NotificationSerializer,SellerTotalEarningSerializer,EmptySerializer,CreateOrderSerializer
+from orders.serializers import OrderSerializer,NotificationSerializer,SellerTotalEarningSerializer,EmptySerializer,CreateOrderSerializer,DeliverySerializer,RevisionSerializer
 from orders.models import Order,Notification
 from rest_framework.viewsets import ModelViewSet,ReadOnlyModelViewSet
 from rest_framework.permissions import IsAuthenticated
@@ -24,7 +24,7 @@ from rest_framework.views import APIView
 
 class OrderViewSet(ModelViewSet):
     permission_classes = [OrderPermissons]
-    http_method_names = ['get','post','delete','patch','head','options']
+    http_method_names = ['get','post','delete','head','options']
 
 
     def perform_create(self, serializer):
@@ -32,13 +32,40 @@ class OrderViewSet(ModelViewSet):
             raise PermissionDenied("Only Buyers can place orders")
         serializer.save(buyer_id=self.request.user.id)
 
-    @action(detail=True, methods=['patch'], permission_classes =[customPermission.IsSeller,IsAdminUser])
-    def update_status(self,request,pk=None):
+    @action(detail=True, methods=['post'])
+    def deliver(self,request,pk=None):
         order = self.get_object()
-        serializer = OrderUpdateSerializer(order,data=request.data, partial = True)
+        if order.status != Order.IN_PROGRESS:
+            return Response({'detail':'Only in-progress orders can be delivered.'}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = DeliverySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response({'status':f'Order Status updated to {request.data['status']}'})
+        order.delivery_message = serializer.validated_data['message']
+        order.delivery_url = serializer.validated_data.get('url', '')
+        order.revision_feedback = ''
+        order.status = Order.DELIVERED
+        order.save()
+        return Response(OrderSerializer(order, context={'request': request}).data)
+
+    @action(detail=True, methods=['post'])
+    def accept_delivery(self,request,pk=None):
+        order = self.get_object()
+        if order.status != Order.DELIVERED:
+            return Response({'detail':'Only delivered orders can be accepted.'}, status=status.HTTP_400_BAD_REQUEST)
+        order.status = Order.COMPLETED
+        order.save()
+        return Response(OrderSerializer(order, context={'request': request}).data)
+
+    @action(detail=True, methods=['post'])
+    def request_revision(self,request,pk=None):
+        order = self.get_object()
+        if order.status != Order.DELIVERED:
+            return Response({'detail':'A revision can only be requested for a delivered order.'}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = RevisionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        order.revision_feedback = serializer.validated_data['feedback']
+        order.status = Order.IN_PROGRESS
+        order.save()
+        return Response(OrderSerializer(order, context={'request': request}).data)
     
     @action(detail=True, methods=['post'], permission_classes =[IsAuthenticated])
     def cancel(self,request,pk=None): #cancel action er maddome order cancel kora jabe post method e
@@ -47,10 +74,10 @@ class OrderViewSet(ModelViewSet):
         return Response({'status':'Order Canceled'})
 
     def get_permissions(self):
-        if self.action in ['update_status','destroy']:
+        if self.action in ['deliver', 'accept_delivery', 'request_revision', 'cancel']:
+            return [IsAuthenticated(), OrderPermissons()]
+        if self.action == 'destroy':
             return [IsAdminUser()]
-        if self.action == 'cancel':
-            return [IsAuthenticated()] 
         return [IsAuthenticated()]
     
     def get_serializer_class(self):
@@ -58,8 +85,6 @@ class OrderViewSet(ModelViewSet):
             return EmptySerializer
         if self.request.method == 'POST':
             return CreateOrderSerializer
-        if self.request.method == 'PATCH':
-            return OrderUpdateSerializer
         return OrderSerializer
     
     def get_serializer_context(self):
@@ -74,11 +99,28 @@ class OrderViewSet(ModelViewSet):
             return Order.objects.none()
 
         if self.request.user.is_staff:
-            return Order.objects.select_related('service__seller').all()
+            return (
+                Order.objects
+                .select_related('buyer', 'service__seller')
+                .prefetch_related('service__images')
+                .order_by('-created_at', '-id')
+            )
         if self.request.user.role == 'Seller':
-            return Order.objects.select_related('service').filter(service__seller = self.request.user)
+            return (
+                Order.objects
+                .select_related('buyer', 'service__seller')
+                .prefetch_related('service__images')
+                .filter(service__seller=self.request.user)
+                .order_by('-created_at', '-id')
+            )
         if self.request.user.role == 'Buyer':
-            return Order.objects.select_related('service__seller').filter(buyer = self.request.user)
+            return (
+                Order.objects
+                .select_related('buyer', 'service__seller')
+                .prefetch_related('service__images')
+                .filter(buyer=self.request.user)
+                .order_by('-created_at', '-id')
+            )
 
 
 
@@ -100,7 +142,13 @@ class BuyerOrderHistory(ModelViewSet):
     permission_classes = [customPermission.IsBuyer,IsAuthenticated]
 
     def get_queryset(self):
-        return Order.objects.filter(buyer = self.request.user)
+        return (
+            Order.objects
+            .select_related('buyer', 'service__seller')
+            .prefetch_related('service__images')
+            .filter(buyer=self.request.user)
+            .order_by('-created_at', '-id')
+        )
     
 
 class totalEarnpermission(permissions.BasePermission):
@@ -135,12 +183,17 @@ class HasOrderedService(APIView):
 
     def get(self,request,service_id):
         user = request.user
-        has_ordered = Order.objects.filter(
+        buyer_orders = Order.objects.filter(
             service_id = service_id,
-            buyer = user,
-            status = "Completed"
-        ).exists()
-        return Response({"has_orderes":has_ordered})
+            buyer = user
+        )
+        order = buyer_orders.order_by('-created_at', '-id').first()
+        has_ordered = buyer_orders.filter(status=Order.COMPLETED).exists()
+        return Response({
+            "has_ordered": has_ordered,
+            "has_orderes": has_ordered,
+            "order_status": order.status if order else None,
+        })
 
 
 

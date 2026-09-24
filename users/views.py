@@ -3,7 +3,7 @@ from django.shortcuts import render
 # Create your views here.
 
 from django.contrib.auth import get_user_model
-from django.db.models import Count
+from django.db.models import Count, Q
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
@@ -18,9 +18,11 @@ User = get_user_model()
 @api_view(['GET'])
 def admin_dashboard_summary(request):
 
-    total_users = User.objects.count()
-    total_sellers = User.objects.filter(role="Seller").count()
-    total_buyers = User.objects.filter(role="Buyer").count()
+    totals = User.objects.aggregate(
+        total_users=Count('id'),
+        total_sellers=Count('id', filter=Q(role='Seller')),
+        total_buyers=Count('id', filter=Q(role='Buyer')),
+    )
 
 
     sellers = list(
@@ -50,9 +52,9 @@ def admin_dashboard_summary(request):
     )["total"] or 0
 
     return Response({
-        "total_users": total_users,
-        "total_sellers": total_sellers,
-        "total_buyers": total_buyers,
+        "total_users": totals['total_users'],
+        "total_sellers": totals['total_sellers'],
+        "total_buyers": totals['total_buyers'],
         "sellers": sellers,
         "buyers": buyers,
         "top_sellers": list(top_sellers),
@@ -62,6 +64,8 @@ def admin_dashboard_summary(request):
 
 
 class UserViewSet(ModelViewSet):
-    queryset = User.objects.all()
+    queryset = User.objects.only(
+        'id', 'email', 'first_name', 'last_name', 'role', 'address', 'phone_number'
+    ).order_by('id')
     serializer_class = UserSerializer
     permission_classes = [IsAdminUser]
